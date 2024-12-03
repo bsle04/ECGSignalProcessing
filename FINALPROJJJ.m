@@ -2,66 +2,52 @@ clear all;
 close all;
 clc;
 
-% Parameters for convolution
-fs = 100; % Sampling frequency for impulse response
-T_plot = 10; % Desired duration for plotting in seconds
-N_plot = fs * T_plot; % Number of samples for 10 seconds
-pulse_width = 1; % Pulse width in seconds
+%Convolution parameters
+fs = 100; %sampling frequency
+T_plot = 10; %duration of time
+N_plot = fs * T_plot; %number of samples for the given amt of time
+pulse_width = 1; %Pulse width (s)
 
-% Prompt user to select the folder
+%prompt user to select folder
 folderPath = uigetdir('Select the folder containing the .dat files');
 
-% Check if the user canceled folder selection
-if isequal(folderPath, 0)
-    error('User canceled the folder selection. Script terminated.');
+if isequal(folderPath, 0) %if user didn't select folder
+    disp('User canceled the folder selection. Script terminated.'); %display message
 end
 
-% Change to the selected folder
-cd(folderPath);
+cd(folderPath); %change working directory to folder
 
-% Get a list of all .dat files in the folder
+%get a list of all .dat files in the folder
 dataFiles = dir(fullfile(folderPath, '*.DAT'));
-temp = dir(fullfile(folderPath, '*.dat'));
-dataFiles = [dataFiles; temp];
+temp = dir(fullfile(folderPath, '*.dat')); %case sensitive, so try both DAT and dat
+dataFiles = [dataFiles; temp]; %combine the two arrays
 
-
-
-% Check if there are any .dat files
-if isempty(dataFiles)
+if isempty(dataFiles) %sanity check to see if there are any valid files
     error('No .dat files found in the selected folder.');
 end
 
-% Loop through each .dat file and process
-for i = 1:length(dataFiles)
+for i = 1:(length(dataFiles)/2) %divide length by 2 because there are .dat and .hea files, these are a pair of files for one set of signals
     fileName = dataFiles(i).name;
-    baseName = fileName(1:end-4); % Remove the .dat extension
+    baseName = fileName(1:end-4); %remove the extension
     
-    % Read the signal using rdsamp
-    try
-        [signals, ~] = rdsamp(baseName); % Assumes corresponding .hea file exists
-        [rows, columns] = size(signals);
-    catch ME
-        warning('Could not read file: %s. Skipping...', fileName);
-        continue;
-    end
+    [signals, ~] = rdsamp(baseName); %rdsamp is like "load" but for wfdb toolbox
+    [rows, columns] = size(signals);
 
-    % Extract signals
-    ecg1 = signals(:, 1); % ECG1
-    ecg2 = signals(:, 2); % ECG2
-    
-    % Define the impulse response (h(t))
-    t_h = (0:N_plot-1) / fs; % Time vector for impulse response
-    h = exp(-t_h); % Exponential decay
+    ecg1 = signals(:, 1); %ECG1
+    ecg2 = signals(:, 2); %ECG2
 
-    % Convolve each signal with the impulse response
+    t_h = (0:N_plot-1) / fs; %time vector for impulse response
+    h = exp(-t_h); %exponential decay
+
+    %signal convolution w/ impulse response
     y_ecg1 = conv(ecg1, h) / fs;
     y_ecg2 = conv(ecg2, h) / fs;
 
-    % Time vectors for plotting
+    %time vectors for plotting
     t_ecg1 = (0:length(y_ecg1)-1) / fs;
     t_ecg2 = (0:length(y_ecg2)-1) / fs;
 
-    % Plot ECG1
+    %plot ecg1
     figure;
     subplot(3, 1, 1);
     plot(ecg1);
@@ -84,7 +70,7 @@ for i = 1:length(dataFiles)
     title('Convolved ECG1 Signal');
     grid on;
 
-    % Plot ECG2
+    %plot ECG2
     figure;
     subplot(3, 1, 1);
     plot(ecg2);
@@ -107,13 +93,13 @@ for i = 1:length(dataFiles)
     title('Convolved ECG2 Signal');
     grid on;
     
-if columns > 2
+if columns > 2 %if nibp exists in the file
 
-    nibp = signals(:, 3); % NIBP
-    y_nibp = conv(nibp, h) / fs;
+    nibp = signals(:, 3);
+    y_nibp = conv(nibp, h) / fs; %convolution
     t_nibp = (0:length(y_nibp)-1) / fs;
 
-    % Plot NIBP
+    %plot NIBP
     figure;
     subplot(3, 1, 1);
     plot(nibp);
@@ -136,7 +122,7 @@ if columns > 2
     title('Convolved NIBP Signal');
     grid on;
 
-    % Add a title for the entire figure
+    %add title
     sgtitle(['Signals, Impulse Response, and Convolution for ', fileName]);
 end
 end
