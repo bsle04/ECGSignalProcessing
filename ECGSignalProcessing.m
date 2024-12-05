@@ -49,21 +49,23 @@ for i = 1:(length(dataFiles)/2) %divide length by 2 because there are .dat and .
 
     %plot ecg1
     figure;
-    subplot(3, 1, 1);
+    subplot(2, 1, 1);
     plot(ecg1);
     xlabel('Samples');
     ylabel('Amplitude');
-    title(['ECG1 Signal from ', fileName]);
+    title(['ECG1 Signal from Adults Aged 85-92, Sample ', fileName]);
     grid on;
-
-    subplot(3, 1, 2);
+    
+    if 0
+    subplot(2, 1, 2);
     plot(t_h, h, 'LineWidth', 1.5);
     xlabel('Time (sec)');
     ylabel('h(t)');
     title('Impulse Response');
     grid on;
+    end
 
-    subplot(3, 1, 3);
+    subplot(2, 1, 2);
     plot(t_ecg1, y_ecg1, 'LineWidth', 1.5);
     xlabel('Time (sec)');
     ylabel('Amplitude');
